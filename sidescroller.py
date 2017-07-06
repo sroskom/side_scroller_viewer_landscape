@@ -43,34 +43,48 @@ class Game(ScreenManager):
         super(Game, self, *args).__init__(*args)
         user_data_dir = App.get_running_app().user_data_dir
         imgdir = os.path.join(user_data_dir,'images')
-        imglist = os.listdir(imgdir)
         
-        for img in imglist:
-            background = Background(source=os.path.join(imgdir,img))
+        if os.path.isdir(imgdir) and len(os.listdir(imgdir))>0:
+            imglist = os.listdir(imgdir)
             
-            widget = Widget()
-            
-            button = Button(text='+')
-            button.pos = [20,20]
-            button.bind(on_press=self.nextScreen)
-            
-            widget.add_widget(background)
-            widget.add_widget(button)
-            
+            for img in imglist:
+                background = Background(source=os.path.join(imgdir,img))
+                
+                widget = Widget()
+                
+                button = Button(text='+')
+                button.pos = [20,20]
+                button.bind(on_press=self.nextScreen)
+                
+                widget.add_widget(background)
+                widget.add_widget(button)
+                
+                
+                screen = Screen()
+                screen.name = img
+                screen.add_widget(widget)
+                self.add_widget(screen)
 
+                Clock.schedule_interval(background.update, 1.0/60.0)
+        else:
+            if not os.path.isdir(imgdir):
+                os.makedirs(imgdir)
+                
             screen = Screen()
-            screen.name = img
-            screen.add_widget(widget)
+            screen.add_widget(Label(text='no images at: '+imgdir))
             self.add_widget(screen)
-
-            Clock.schedule_interval(background.update, 1.0/60.0)
+        
 
 class SideScrollerApp(App):
     def on_pause(self, *args):
         return True
     
     def build(self, *args):
-        return Game()
+        try:
+            return Game()
+        except Exception as exp:
+            return Label(text=str(exp))
+            
 
 if __name__ == '__main__':
     SideScrollerApp().run()
